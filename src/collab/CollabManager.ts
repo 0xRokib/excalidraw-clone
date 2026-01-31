@@ -12,14 +12,15 @@ export class CollabManager {
     this.doc = new Y.Doc();
     this.elementsMap = this.doc.getMap("elements");
 
-    // Setup WebRTC with multiple signaling servers for redundancy
+    // Setup WebRTC with a more robust set of public signaling servers
     this.provider = new WebrtcProvider(roomName, this.doc, {
       signaling: [
+        "wss://signaling.yjs.dev",
+        "wss://y-webrtc.fly.dev",
         "wss://y-webrtc-signaling-eu.herokuapp.com",
         "wss://y-webrtc-signaling-us.herokuapp.com",
-        "wss://y-webrtc-ck90.onrender.com",
       ],
-      filterBcConns: false, // Ensure broadcast channel is used for same-browser tabs
+      filterBcConns: false,
     });
 
     this.awareness = this.provider.awareness;
