@@ -151,6 +151,49 @@ body.dark-theme .tool-btn:hover {
   margin: auto 4px;
 }
 
+/* Zoom Controls */
+.zoom-controls {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(10px);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: var(--shadow);
+  z-index: 100;
+}
+
+.zoom-btn {
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-color);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.zoom-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+body.dark-theme .zoom-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+#zoom-level {
+  font-size: 13px;
+  min-width: 44px;
+  text-align: center;
+  font-family: monospace;
+}
+
 /* Sidebar / Properties Panel */
 .properties-panel {
   position: absolute;

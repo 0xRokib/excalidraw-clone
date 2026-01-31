@@ -5,13 +5,13 @@ import { HistoryManager } from "./history/HistoryManager.ts";
 import type { ToolContext } from "./tools/BaseTool.ts";
 import { BaseTool } from "./tools/BaseTool.ts";
 import { EraserTool } from "./tools/EraserTool.ts";
+import { LaserTool } from "./tools/LaserTool.ts";
 import { PencilTool } from "./tools/PencilTool.ts";
 import { SelectionTool } from "./tools/SelectionTool.ts";
 import { ShapeTool } from "./tools/ShapeTool.ts";
 import { TextTool } from "./tools/TextTool.ts";
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-// Use a unique room name for local testing or from URL
 const roomName =
   new URLSearchParams(window.location.search).get("room") || "default-room";
 const scene = new Scene(roomName);
@@ -53,7 +53,35 @@ const tools: Record<string, BaseTool> = {
   pencil: new PencilTool(context),
   eraser: new EraserTool(context),
   text: new TextTool(context),
+  laser: new LaserTool(context),
 };
+
+const updateZoomUI = () => {
+  const zoom = Math.round(cameraManager.get().zoom * 100);
+  const zoomLabel = document.getElementById("zoom-level");
+  if (zoomLabel) zoomLabel.textContent = `${zoom}%`;
+};
+
+// Zoom and Grid Listeners
+document.getElementById("zoom-in")?.addEventListener("click", () => {
+  cameraManager.zoomAt(0.1, window.innerWidth / 2, window.innerHeight / 2);
+  updateZoomUI();
+});
+document.getElementById("zoom-out")?.addEventListener("click", () => {
+  cameraManager.zoomAt(-0.1, window.innerWidth / 2, window.innerHeight / 2);
+  updateZoomUI();
+});
+document.getElementById("zoom-reset")?.addEventListener("click", () => {
+  cameraManager.set({ zoom: 1 });
+  updateZoomUI();
+});
+
+let gridStyles: ("grid" | "dots" | "none")[] = ["dots", "grid", "none"];
+let currentGridIdx = 0;
+document.getElementById("grid-toggle")?.addEventListener("click", () => {
+  currentGridIdx = (currentGridIdx + 1) % gridStyles.length;
+  renderer.setGridStyle(gridStyles[currentGridIdx]);
+});
 
 let activeTool: BaseTool = tools.select;
 let isPanning = false;
@@ -247,6 +275,10 @@ window.addEventListener("keydown", (e) => {
   if (e.code === "KeyP")
     document
       .querySelector('[data-tool="pencil"]')
+      ?.dispatchEvent(new Event("click"));
+  if (e.code === "KeyK")
+    document
+      .querySelector('[data-tool="laser"]')
       ?.dispatchEvent(new Event("click"));
   if (e.code === "KeyV")
     document

@@ -14,6 +14,7 @@ export class Renderer {
   private cameraManager: CameraManager;
   private drawableCache: Map<string, { drawable: any; version: number }> =
     new Map();
+  private gridStyle: "grid" | "dots" | "none" = "dots";
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -37,6 +38,10 @@ export class Renderer {
     this.render();
   }
 
+  public setGridStyle(style: "grid" | "dots" | "none") {
+    this.gridStyle = style;
+  }
+
   private setupCanvas() {
     const dpr = window.devicePixelRatio || 1;
     const w = window.innerWidth;
@@ -58,7 +63,9 @@ export class Renderer {
 
     // 1. Prepare Offscreen Buffer
     this.offscreenCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    this.offscreenCtx.fillStyle = "#f8f9fa";
+    this.offscreenCtx.fillStyle = document.body.classList.contains("dark-theme")
+      ? "#121212"
+      : "#f8f9fa";
     this.offscreenCtx.fillRect(0, 0, w, h);
 
     const camera = this.cameraManager.get();
@@ -79,6 +86,9 @@ export class Renderer {
       }
     });
 
+    // Render Laser Pointers
+    this.renderLaser(this.offscreenCtx);
+
     this.renderSelections(this.offscreenCtx);
     this.offscreenCtx.restore();
 
@@ -93,6 +103,8 @@ export class Renderer {
   };
 
   private renderGrid(ctx: CanvasRenderingContext2D) {
+    if (this.gridStyle === "none") return;
+
     const camera = this.cameraManager.get();
     const gridSize = 40;
     const zoom = camera.zoom;
@@ -102,14 +114,44 @@ export class Renderer {
     const endX = startX + window.innerWidth / zoom + gridSize;
     const endY = startY + window.innerHeight / zoom + gridSize;
 
-    ctx.fillStyle = "#e9ecef";
-    for (let x = startX; x < endX; x += gridSize) {
+    const isDark = document.body.classList.contains("dark-theme");
+    ctx.strokeStyle = isDark ? "#222" : "#eee";
+    ctx.fillStyle = isDark ? "#222" : "#ddd";
+    ctx.lineWidth = 0.5 / zoom;
+
+    if (this.gridStyle === "grid") {
+      ctx.beginPath();
+      for (let x = startX; x < endX; x += gridSize) {
+        ctx.moveTo(x, startY);
+        ctx.lineTo(x, endY);
+      }
       for (let y = startY; y < endY; y += gridSize) {
-        ctx.beginPath();
-        ctx.arc(x, y, 0.7, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.moveTo(startX, y);
+        ctx.lineTo(endX, y);
+      }
+      ctx.stroke();
+    } else {
+      for (let x = startX; x < endX; x += gridSize) {
+        for (let y = startY; y < endY; y += gridSize) {
+          ctx.beginPath();
+          ctx.arc(x, y, 0.7, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
     }
+  }
+
+  private renderLaser(ctx: CanvasRenderingContext2D) {
+    const collab = this.scene.getCollab();
+    const states = collab.awareness.getStates();
+
+    states.forEach((state: any) => {
+      if (state.laser && state.laser.points) {
+        import("../tools/LaserTool.ts").then(({ LaserTool }) => {
+          LaserTool.renderLaser(ctx, state.laser.points, 800);
+        });
+      }
+    });
   }
 
   private renderElement(element: Element) {
