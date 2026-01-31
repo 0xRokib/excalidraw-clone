@@ -12,9 +12,14 @@ export class CollabManager {
     this.doc = new Y.Doc();
     this.elementsMap = this.doc.getMap("elements");
 
-    // Setup WebRTC
+    // Setup WebRTC with multiple signaling servers for redundancy
     this.provider = new WebrtcProvider(roomName, this.doc, {
-      signaling: ["wss://y-webrtc-signaling-eu.herokuapp.com"], // Fallback server
+      signaling: [
+        "wss://y-webrtc-signaling-eu.herokuapp.com",
+        "wss://y-webrtc-signaling-us.herokuapp.com",
+        "wss://y-webrtc-ck90.onrender.com",
+      ],
+      filterBcConns: false, // Ensure broadcast channel is used for same-browser tabs
     });
 
     this.awareness = this.provider.awareness;
@@ -24,8 +29,17 @@ export class CollabManager {
       onUpdate(Array.from(this.elementsMap.values()));
     });
 
+    // Sync awareness (presence, cursors, etc.)
+    this.awareness.on("change", () => {
+      onUpdate(Array.from(this.elementsMap.values()));
+    });
+
     // Setup local user presence
     this.setupPresence();
+  }
+
+  getPeerCount(): number {
+    return this.awareness.getStates().size;
   }
 
   private setupPresence() {

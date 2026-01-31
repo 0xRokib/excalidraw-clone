@@ -34,4 +34,8 @@ export class Scene {
   getCollab() {
     return this.collab;
   }
+
+  getPeerCount() {
+    return this.collab.getPeerCount();
+  }
 }

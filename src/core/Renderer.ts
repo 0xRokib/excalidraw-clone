@@ -292,32 +292,38 @@ export class Renderer {
 
   private renderSelections(ctx: CanvasRenderingContext2D) {
     const collab = this.scene.getCollab();
-    const state = collab.awareness.getLocalState();
-    if (!state || !state.selection || state.selection.length === 0) return;
+    const states = collab.awareness.getStates();
+    const localId = collab.doc.clientID;
 
-    const elements = this.scene.getElements();
-    state.selection.forEach((id: string) => {
-      const el = elements.find((e) => e.id === id);
-      if (!el) return;
+    states.forEach((state: any, clientId: number) => {
+      if (!state.selection || state.selection.length === 0) return;
 
-      ctx.save();
-      ctx.strokeStyle = "#6965db";
-      ctx.lineWidth = 1.5 / this.cameraManager.get().zoom;
-      ctx.setLineDash([5, 5]);
+      const elements = this.scene.getElements();
+      state.selection.forEach((id: string) => {
+        const el = elements.find((e) => e.id === id);
+        if (!el) return;
 
-      const minX = Math.min(el.x, el.x + el.width);
-      const maxX = Math.max(el.x, el.x + el.width);
-      const minY = Math.min(el.y, el.y + el.height);
-      const maxY = Math.max(el.y, el.y + el.height);
+        ctx.save();
+        // Use peer's color if it's not the local user, otherwise use standard selection color
+        ctx.strokeStyle =
+          clientId === localId ? "#6965db" : state.user?.color || "#6965db";
+        ctx.lineWidth = 1.5 / this.cameraManager.get().zoom;
+        ctx.setLineDash([5, 5]);
 
-      const padding = 6 / this.cameraManager.get().zoom;
-      ctx.strokeRect(
-        minX - padding,
-        minY - padding,
-        maxX - minX + padding * 2,
-        maxY - minY + padding * 2,
-      );
-      ctx.restore();
+        const minX = Math.min(el.x, el.x + el.width);
+        const maxX = Math.max(el.x, el.x + el.width);
+        const minY = Math.min(el.y, el.y + el.height);
+        const maxY = Math.max(el.y, el.y + el.height);
+
+        const padding = 6 / this.cameraManager.get().zoom;
+        ctx.strokeRect(
+          minX - padding,
+          minY - padding,
+          maxX - minX + padding * 2,
+          maxY - minY + padding * 2,
+        );
+        ctx.restore();
+      });
     });
   }
 

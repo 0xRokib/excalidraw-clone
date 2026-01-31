@@ -1,134 +1,136 @@
 :root {
-  --bg-color: #f8f9fa;
-  --panel-bg: rgba(255, 255, 255, 0.9);
-  --text-color: #212529;
-  --border-color: #dee2e6;
-  --primary-color: #6965db;
-  --primary-hover: #5850c9;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --radius-sm: 4px;
-  --radius-md: 8px;
+  --bg-color: #f3f4f6;
+  --panel-bg: rgba(255, 255, 255, 0.8);
+  --text-main: #1f2937;
+  --text-muted: #6b7280;
+  --border-color: rgba(0, 0, 0, 0.08);
+  --primary: #6366f1;
+  --primary-glow: rgba(99, 102, 241, 0.2);
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --radius-xl: 16px;
   --radius-lg: 12px;
+  --radius-md: 8px;
+  --blur: 12px;
 }
 
 body.dark-theme {
-  --bg-color: #121212;
-  --panel-bg: rgba(30, 30, 30, 0.95);
-  --text-color: #e0e0e0;
-  --border-color: #333333;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --bg-color: #0f172a;
+  --panel-bg: rgba(30, 41, 59, 0.7);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --primary: #818cf8;
+  --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
   font-family:
     "Inter",
+    system-ui,
     -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
     sans-serif;
   background-color: var(--bg-color);
-  color: var(--text-color);
+  color: var(--text-main);
   overflow: hidden;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-#app {
-  width: 100vw;
-  height: 100vh;
-  position: relative;
-}
-
-canvas {
-  display: block;
-  touch-action: none;
-  cursor: crosshair;
-}
-
-body.dark-theme canvas {
-  background-color: #121212; /* Dark background for canvas in dark mode */
-}
-
-/* UI Overlay Container */
-.ui-overlay {
+#canvas {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
+  width: 100vw;
+  height: 100vh;
+  touch-action: none;
 }
 
-.ui-overlay > * {
-  pointer-events: auto;
+/* Glassmorphism Classes */
+.glass {
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
 }
 
-/* Actions Panel */
+/* Actions Panel (Top Left) */
 .actions-panel {
   position: absolute;
-  top: 16px;
-  left: 16px;
+  top: 24px;
+  left: 24px;
   display: flex;
-  gap: 8px;
+  gap: 12px;
+  z-index: 1000;
+  animation: slide-in-left 0.5s ease-out;
 }
 
 .action-btn {
   background: var(--panel-bg);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(var(--blur));
   border: 1px solid var(--border-color);
-  padding: 10px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  color: var(--text-color);
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow);
-}
-
-.action-btn:hover {
-  background: var(--border-color);
-  transform: translateY(-1px);
-}
-
-/* Top Toolbar */
-.toolbar {
-  position: absolute;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--panel-bg);
-  backdrop-filter: blur(10px);
-  padding: 6px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  display: flex;
-  gap: 4px;
-  border: 1px solid var(--border-color);
-  z-index: 100;
-}
-
-.tool-btn {
-  width: 42px;
-  height: 42px;
-  border: none;
-  background: transparent;
   cursor: pointer;
-  border-radius: var(--radius-md);
+  color: var(--text-main);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  color: var(--text-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 10px 15px -3px var(--primary-glow);
+}
+
+/* Main Toolbar (Top Center) */
+.toolbar {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px;
+  border-radius: var(--radius-xl);
+  display: flex;
+  gap: 4px;
+  z-index: 1000;
+  animation: slide-in-top 0.5s ease-out;
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--blur));
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.tool-btn {
+  background: transparent;
+  border: none;
+  width: 48px;
+  height: 48px;
+  border-radius: calc(var(--radius-xl) - 8px);
+  cursor: pointer;
+  color: var(--text-main);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tool-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
 }
 
 .tool-btn:hover {
@@ -140,174 +142,260 @@ body.dark-theme .tool-btn:hover {
 }
 
 .tool-btn.active {
-  background: var(--primary-color) !important;
+  background: var(--primary) !important;
   color: white !important;
+  box-shadow: 0 8px 20px -6px var(--primary-glow);
 }
 
 .tool-separator {
   width: 1px;
-  height: 24px;
+  height: 28px;
   background: var(--border-color);
-  margin: auto 4px;
+  margin: auto 8px;
 }
 
-/* Zoom Controls */
+/* Properties Side Panel */
+.properties-panel {
+  position: absolute;
+  top: 92px;
+  left: 24px;
+  width: 240px;
+  padding: 24px;
+  border-radius: var(--radius-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  z-index: 900;
+  animation: slide-in-left 0.6s ease-out;
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--blur));
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.prop-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.prop-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.color-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.color-swatch:hover {
+  transform: scale(1.15);
+}
+.color-swatch.active {
+  border-color: var(--primary);
+  box-shadow:
+    0 0 0 2px var(--bg-color),
+    0 0 0 4px var(--primary);
+}
+
+.style-grid {
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.03);
+  padding: 4px;
+  border-radius: 12px;
+}
+
+body.dark-theme .style-grid {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.style-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 10px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.style-btn.active {
+  background: white;
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+body.dark-theme .style-btn.active {
+  background: #334155;
+  color: white;
+}
+
+/* Zoom Hub (Bottom Left) */
 .zoom-controls {
   position: absolute;
-  bottom: 16px;
-  left: 16px;
-  background: var(--panel-bg);
-  backdrop-filter: blur(10px);
-  padding: 4px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
+  bottom: 24px;
+  left: 24px;
+  padding: 6px;
+  border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
-  gap: 8px;
-  box-shadow: var(--shadow);
-  z-index: 100;
+  gap: 4px;
+  z-index: 1000;
+  animation: slide-in-bottom 0.5s ease-out;
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--blur));
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
 }
 
 .zoom-btn {
   background: transparent;
   border: none;
-  padding: 6px 12px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  color: var(--text-color);
-  font-weight: 500;
-  transition: all 0.2s ease;
+  color: var(--text-main);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
 }
 
 .zoom-btn:hover {
   background: rgba(0, 0, 0, 0.05);
 }
 
-body.dark-theme .zoom-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
 #zoom-level {
-  font-size: 13px;
-  min-width: 44px;
+  font-size: 12px;
+  font-weight: 800;
+  min-width: 54px;
   text-align: center;
-  font-family: monospace;
-}
-
-/* Sidebar / Properties Panel */
-.properties-panel {
-  position: absolute;
-  top: 80px;
-  left: 16px;
-  background: var(--panel-bg);
-  backdrop-filter: blur(10px);
-  padding: 16px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border-color);
-  width: 240px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  z-index: 90;
-}
-
-.prop-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.prop-label {
-  font-size: 12px;
-  font-weight: 600;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-family: "JetBrains Mono", monospace;
 }
 
-.color-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
-}
-
-.color-swatch {
-  width: 100%;
-  aspect-ratio: 1;
-  border-radius: 4px;
-  border: 2px solid white;
-  box-shadow: 0 0 0 1px #eee;
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-
-.color-swatch:hover {
-  transform: scale(1.1);
-}
-
-.color-swatch.active {
-  box-shadow: 0 0 0 2px var(--primary);
-}
-
-.style-grid {
-  display: flex;
-  gap: 4px;
-}
-
-.style-btn {
-  flex: 1;
-  height: 32px;
-  background: transparent;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: all 0.2s;
-}
-
-.style-btn:hover {
-  background: #f0f0f0;
-}
-
-.style-btn.active {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: rgba(105, 101, 219, 0.05);
-}
-
-/* Collaboration Badge */
+/* Collaboration Badge (Top Right) */
 .collab-badge {
   position: absolute;
-  bottom: 16px;
-  right: 16px;
-  background: white;
-  padding: 8px 12px;
+  top: 24px;
+  right: 24px;
+  padding: 12px 20px;
   border-radius: 100px;
-  box-shadow: var(--shadow);
+  font-size: 13px;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 500;
+  gap: 12px;
+  z-index: 1000;
+  animation: slide-in-top 0.5s ease-out 0.2s backwards;
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--blur));
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  width: 10px;
+  height: 10px;
   background: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+  animation: pulse 2s infinite;
 }
 
-/* User Pointers */
-.user-cursor-label {
+/* Feedback/Animations */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes slide-in-top {
+  from {
+    transform: translateY(-40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes slide-in-bottom {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Suggestion UI (Ghost/Modern) */
+.suggestion-toast {
   position: absolute;
-  padding: 4px 8px;
-  border-radius: 4px;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  background: var(--primary);
   color: white;
-  font-size: 11px;
+  border-radius: 100px;
   font-weight: 600;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 1000;
+  display: flex;
+  gap: 12px;
+  box-shadow: 0 10px 30px var(--primary-glow);
+  z-index: 2000;
+  animation: bounce-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes bounce-in {
+  from {
+    transform: translate(-50%, 20px) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 1;
+  }
 }

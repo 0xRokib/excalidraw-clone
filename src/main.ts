@@ -1,6 +1,7 @@
 import { CameraManager } from "./core/Camera.ts";
 import { Renderer } from "./core/Renderer.ts";
 import { Scene } from "./core/Scene.ts";
+import { SuggestionEngine } from "./core/SuggestionEngine.ts";
 import { HistoryManager } from "./history/HistoryManager.ts";
 import type { ToolContext } from "./tools/BaseTool.ts";
 import { BaseTool } from "./tools/BaseTool.ts";
@@ -11,6 +12,7 @@ import { SelectionTool } from "./tools/SelectionTool.ts";
 import { ShapeTool } from "./tools/ShapeTool.ts";
 import { TextTool } from "./tools/TextTool.ts";
 
+// --- Initialization ---
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const roomName =
   new URLSearchParams(window.location.search).get("room") || "default-room";
@@ -18,18 +20,11 @@ const scene = new Scene(roomName);
 const cameraManager = new CameraManager();
 const renderer = new Renderer(canvas, scene, cameraManager);
 const history = new HistoryManager(scene.getCollab().elementsMap);
+const suggestionEngine = new SuggestionEngine();
 
-// Export Functionality
-const exportToImage = () => {
-  const link = document.createElement("a");
-  link.download = `antigravity-draw-${Date.now()}.png`;
-  link.href = canvas.toDataURL("image/png");
-  link.click();
-};
-
-// Style State
+// --- State ---
 let currentStyle = {
-  strokeColor: "#000000",
+  strokeColor: "#1e293b",
   backgroundColor: "transparent",
   strokeWidth: 2,
   roughness: 1,
@@ -56,60 +51,18 @@ const tools: Record<string, BaseTool> = {
   laser: new LaserTool(context),
 };
 
+let activeTool: BaseTool = tools.select;
+let isPanning = false;
+let lastMousePos = { x: 0, y: 0 };
+let spacePressed = false;
+
+// --- Helpers ---
 const updateZoomUI = () => {
   const zoom = Math.round(cameraManager.get().zoom * 100);
   const zoomLabel = document.getElementById("zoom-level");
   if (zoomLabel) zoomLabel.textContent = `${zoom}%`;
 };
 
-// Zoom and Grid Listeners
-document.getElementById("zoom-in")?.addEventListener("click", () => {
-  cameraManager.zoomAt(0.1, window.innerWidth / 2, window.innerHeight / 2);
-  updateZoomUI();
-});
-document.getElementById("zoom-out")?.addEventListener("click", () => {
-  cameraManager.zoomAt(-0.1, window.innerWidth / 2, window.innerHeight / 2);
-  updateZoomUI();
-});
-document.getElementById("zoom-reset")?.addEventListener("click", () => {
-  cameraManager.set({ zoom: 1 });
-  updateZoomUI();
-});
-
-let gridStyles: ("grid" | "dots" | "none")[] = ["dots", "grid", "none"];
-let currentGridIdx = 0;
-document.getElementById("grid-toggle")?.addEventListener("click", () => {
-  currentGridIdx = (currentGridIdx + 1) % gridStyles.length;
-  renderer.setGridStyle(gridStyles[currentGridIdx]);
-});
-
-let activeTool: BaseTool = tools.select;
-let isPanning = false;
-let lastMousePos = { x: 0, y: 0 };
-let spacePressed = false;
-
-// Toolbar handling
-document.querySelectorAll(".tool-btn").forEach((btn) => {
-  btn.addEventListener("click", (e) => {
-    document.querySelector(".tool-btn.active")?.classList.remove("active");
-    const toolId = (e.currentTarget as HTMLButtonElement).dataset.tool!;
-    if (tools[toolId]) {
-      activeTool.onDeactivate?.();
-      activeTool = tools[toolId];
-      (e.currentTarget as HTMLButtonElement).classList.add("active");
-
-      if (toolId === "select") {
-        canvas.style.cursor = "default";
-      } else if (toolId === "eraser") {
-        canvas.style.cursor = "cell";
-      } else {
-        canvas.style.cursor = "crosshair";
-      }
-    }
-  });
-});
-
-// Helper to update selected elements
 const updateSelectedElements = (update: Partial<any>) => {
   const selection = context.scene
     .getCollab()
@@ -127,63 +80,84 @@ const updateSelectedElements = (update: Partial<any>) => {
   }
 };
 
-// Property Panel Listeners
-const setupPropertyListeners = () => {
-  // Stroke Colors
-  document
-    .querySelectorAll("#stroke-colors .color-swatch")
-    .forEach((swatch) => {
-      swatch.addEventListener("click", (e) => {
-        document
-          .querySelector("#stroke-colors .active")
-          ?.classList.remove("active");
-        (e.currentTarget as HTMLElement).classList.add("active");
-        const color = (e.currentTarget as HTMLElement).dataset.color!;
-        currentStyle.strokeColor = color;
-        updateSelectedElements({ strokeColor: color });
-      });
-    });
-
-  // Background Colors
-  document.querySelectorAll("#bg-colors .color-swatch").forEach((swatch) => {
-    swatch.addEventListener("click", (e) => {
-      document.querySelector("#bg-colors .active")?.classList.remove("active");
-      (e.currentTarget as HTMLElement).classList.add("active");
-      const color = (e.currentTarget as HTMLElement).dataset.color!;
-      currentStyle.backgroundColor = color;
-      updateSelectedElements({ backgroundColor: color });
-    });
-  });
-
-  // Roughness
-  document.querySelectorAll("#roughness-btns .style-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      document
-        .querySelector("#roughness-btns .active")
-        ?.classList.remove("active");
-      (e.currentTarget as HTMLElement).classList.add("active");
-      const val = Number((e.currentTarget as HTMLElement).dataset.value);
-      currentStyle.roughness = val;
-      updateSelectedElements({ roughness: val });
-    });
-  });
-
-  // Stroke Width
-  document.querySelectorAll("#stroke-width-btns .style-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      document
-        .querySelector("#stroke-width-btns .active")
-        ?.classList.remove("active");
-      (e.currentTarget as HTMLElement).classList.add("active");
-      const val = Number((e.currentTarget as HTMLElement).dataset.value);
-      currentStyle.strokeWidth = val;
-      updateSelectedElements({ strokeWidth: val });
-    });
-  });
+const exportToImage = () => {
+  const link = document.createElement("a");
+  link.download = `antigravity-draw-${Date.now()}.png`;
+  link.href = canvas.toDataURL("image/png");
+  link.click();
 };
 
-setupPropertyListeners();
+// AI Suggestion Logic
+let lastPencilId: string | null = null;
+const showSuggestion = (id: string) => {
+  const toast = document.getElementById("suggestion-toast");
+  if (!toast) return;
+  lastPencilId = id;
+  toast.style.display = "flex";
+  setTimeout(() => {
+    if (lastPencilId === id) toast.style.display = "none";
+  }, 8000);
+};
 
+// --- Event Listeners ---
+
+// Tool Buttons
+document.querySelectorAll(".tool-btn").forEach((btn) => {
+  btn.addEventListener("click", (e) => {
+    document.querySelector(".tool-btn.active")?.classList.remove("active");
+    const toolId = (e.currentTarget as HTMLButtonElement).dataset.tool!;
+    if (tools[toolId]) {
+      activeTool.onDeactivate?.();
+      activeTool = tools[toolId];
+      (e.currentTarget as HTMLButtonElement).classList.add("active");
+      canvas.style.cursor =
+        toolId === "select"
+          ? "default"
+          : toolId === "eraser"
+            ? "cell"
+            : "crosshair";
+    }
+  });
+});
+
+// Property Panel
+document.querySelectorAll(".color-swatch").forEach((swatch) => {
+  swatch.addEventListener("click", (e) => {
+    const containerId = (e.currentTarget as HTMLElement).parentElement?.id;
+    document
+      .querySelector(`#${containerId} .active`)
+      ?.classList.remove("active");
+    (e.currentTarget as HTMLElement).classList.add("active");
+    const color = (e.currentTarget as HTMLElement).dataset.color!;
+    if (containerId === "stroke-colors") {
+      currentStyle.strokeColor = color;
+      updateSelectedElements({ strokeColor: color });
+    } else {
+      currentStyle.backgroundColor = color;
+      updateSelectedElements({ backgroundColor: color });
+    }
+  });
+});
+
+document.querySelectorAll(".style-btn").forEach((btn) => {
+  btn.addEventListener("click", (e) => {
+    const containerId = (e.currentTarget as HTMLElement).parentElement?.id;
+    document
+      .querySelector(`#${containerId} .active`)
+      ?.classList.remove("active");
+    (e.currentTarget as HTMLElement).classList.add("active");
+    const val = Number((e.currentTarget as HTMLElement).dataset.value);
+    if (containerId === "roughness-btns") {
+      currentStyle.roughness = val;
+      updateSelectedElements({ roughness: val });
+    } else {
+      currentStyle.strokeWidth = val;
+      updateSelectedElements({ strokeWidth: val });
+    }
+  });
+});
+
+// Canvas Interactions
 canvas.addEventListener("pointerdown", (e) => {
   if (spacePressed || e.button === 1) {
     isPanning = true;
@@ -194,7 +168,6 @@ canvas.addEventListener("pointerdown", (e) => {
 });
 
 window.addEventListener("pointermove", (e) => {
-  // Update awareness cursor
   const worldPos = cameraManager.screenToWorld(e.clientX, e.clientY);
   scene.getCollab().updateCursor(worldPos.x, worldPos.y);
 
@@ -220,12 +193,13 @@ canvas.addEventListener(
   "wheel",
   (e) => {
     e.preventDefault();
-    const delta = -e.deltaY / 1000;
-    cameraManager.zoomAt(delta, e.clientX, e.clientY);
+    cameraManager.zoomAt(-e.deltaY / 1000, e.clientX, e.clientY);
+    updateZoomUI();
   },
   { passive: false },
 );
 
+// Global Key Listeners
 window.addEventListener("keydown", (e) => {
   if (e.code === "Space") {
     spacePressed = true;
@@ -234,69 +208,37 @@ window.addEventListener("keydown", (e) => {
 
   // Undo / Redo
   if ((e.metaKey || e.ctrlKey) && e.code === "KeyZ") {
-    if (e.shiftKey) {
-      history.redo();
-    } else {
-      history.undo();
-    }
+    if (e.shiftKey) history.redo();
+    else history.undo();
     return;
+  }
+
+  // Clear Canvas (Shift + Backspace)
+  if (e.shiftKey && (e.key === "Backspace" || e.key === "Delete")) {
+    if (confirm("Clear entire canvas?")) {
+      scene.getElements().forEach((el) => scene.removeElement(el.id));
+    }
   }
 
   activeTool.onKeyDown(e);
 
-  if (e.code === "KeyA")
+  // Shortcuts Mapping
+  const shortcuts: Record<string, string> = {
+    KeyV: "select",
+    KeyR: "rectangle",
+    KeyO: "ellipse",
+    KeyD: "diamond",
+    KeyL: "line",
+    KeyA: "arrow",
+    KeyP: "pencil",
+    KeyT: "text",
+    KeyE: "eraser",
+    KeyK: "laser",
+  };
+  if (shortcuts[e.code]) {
     document
-      .querySelector('[data-tool="arrow"]')
+      .querySelector(`[data-tool="${shortcuts[e.code]}"]`)
       ?.dispatchEvent(new Event("click"));
-  if (e.code === "KeyD")
-    document
-      .querySelector('[data-tool="diamond"]')
-      ?.dispatchEvent(new Event("click"));
-  if (e.code === "KeyT")
-    document
-      .querySelector('[data-tool="text"]')
-      ?.dispatchEvent(new Event("click"));
-  if (e.code === "KeyE")
-    document
-      .querySelector('[data-tool="eraser"]')
-      ?.dispatchEvent(new Event("click"));
-  if (e.code === "KeyL")
-    document
-      .querySelector('[data-tool="line"]')
-      ?.dispatchEvent(new Event("click"));
-  if (e.code === "KeyR")
-    document
-      .querySelector('[data-tool="rectangle"]')
-      ?.dispatchEvent(new Event("click"));
-  if (e.code === "KeyO")
-    document
-      .querySelector('[data-tool="ellipse"]')
-      ?.dispatchEvent(new Event("click"));
-  if (e.code === "KeyP")
-    document
-      .querySelector('[data-tool="pencil"]')
-      ?.dispatchEvent(new Event("click"));
-  if (e.code === "KeyK")
-    document
-      .querySelector('[data-tool="laser"]')
-      ?.dispatchEvent(new Event("click"));
-  if (e.code === "KeyV")
-    document
-      .querySelector('[data-tool="select"]')
-      ?.dispatchEvent(new Event("click"));
-});
-
-// Action Panel Listeners
-document.getElementById("export-btn")?.addEventListener("click", exportToImage);
-document.getElementById("theme-toggle")?.addEventListener("click", () => {
-  document.body.classList.toggle("dark-theme");
-  const isDark = document.body.classList.contains("dark-theme");
-  const icon = document.querySelector("#theme-toggle svg") as HTMLElement;
-  if (isDark) {
-    icon.innerHTML =
-      '<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364-.707.707M6.343 17.657l-.707.707m12.728 0-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>';
-  } else {
-    icon.innerHTML = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />';
   }
 });
 
@@ -307,6 +249,81 @@ window.addEventListener("keyup", (e) => {
   }
 });
 
-window.addEventListener("resize", () => {
-  renderer.resize();
+// Action Buttons
+document.getElementById("export-btn")?.addEventListener("click", exportToImage);
+document.getElementById("share-btn")?.addEventListener("click", () => {
+  navigator.clipboard.writeText(window.location.href);
+  const btn = document.getElementById("share-btn")!;
+  const old = btn.innerHTML;
+  btn.innerHTML = "<span style='font-size:10px'>COPIED</span>";
+  setTimeout(() => (btn.innerHTML = old), 2000);
 });
+
+document.getElementById("theme-toggle")?.addEventListener("click", () => {
+  document.body.classList.toggle("dark-theme");
+  const isDark = document.body.classList.contains("dark-theme");
+  const icon = document.querySelector("#theme-toggle svg")!;
+  icon.innerHTML = isDark
+    ? '<path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>'
+    : '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>';
+});
+
+let gridStyles: ("grid" | "dots" | "none")[] = ["dots", "grid", "none"];
+let currentGridIdx = 0;
+document.getElementById("grid-toggle")?.addEventListener("click", () => {
+  currentGridIdx = (currentGridIdx + 1) % gridStyles.length;
+  renderer.setGridStyle(gridStyles[currentGridIdx]);
+});
+
+// Zoom Hub
+document.getElementById("zoom-in")?.addEventListener("click", () => {
+  cameraManager.zoomAt(0.1, window.innerWidth / 2, window.innerHeight / 2);
+  updateZoomUI();
+});
+document.getElementById("zoom-out")?.addEventListener("click", () => {
+  cameraManager.zoomAt(-0.1, window.innerWidth / 2, window.innerHeight / 2);
+  updateZoomUI();
+});
+document.getElementById("zoom-reset")?.addEventListener("click", () => {
+  cameraManager.set({ zoom: 1 });
+  updateZoomUI();
+});
+
+// AI Suggestion Handler
+document.getElementById("suggestion-toast")?.addEventListener("click", () => {
+  if (!lastPencilId) return;
+  const el = scene.getElements().find((e) => e.id === lastPencilId);
+  if (el) {
+    scene.setElement(suggestionEngine.cleanup(el, "rectangle"));
+    document.getElementById("suggestion-toast")!.style.display = "none";
+  }
+});
+
+// Sync UI States
+scene.onUpdate(() => {
+  const count = scene.getPeerCount();
+  const badge = document.querySelector(".collab-badge");
+  if (badge) {
+    const textNode = badge.childNodes[badge.childNodes.length - 1];
+    if (textNode) textNode.textContent = `${count} connected`;
+  }
+
+  // AI Suggestion Logic
+  const elements = scene.getElements();
+  const last = elements[elements.length - 1];
+  if (
+    last &&
+    last.type === "pencil" &&
+    last.id !== lastPencilId &&
+    last.points &&
+    last.points.length > 20
+  ) {
+    const start = last.points[0];
+    const end = last.points[last.points.length - 1];
+    const d = Math.sqrt((start[0] - end[0]) ** 2 + (start[1] - end[1]) ** 2);
+    if (d < 50) showSuggestion(last.id);
+  }
+});
+
+window.addEventListener("resize", () => renderer.resize());
+updateZoomUI();
