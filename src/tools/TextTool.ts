@@ -7,6 +7,7 @@ export class TextTool extends BaseTool {
   private isEditing = false;
   private currentElementId: string | null = null;
   private input: HTMLTextAreaElement | null = null;
+  private worldPos = { x: 0, y: 0 };
 
   constructor(context: ToolContext) {
     super(context);
@@ -22,7 +23,8 @@ export class TextTool extends BaseTool {
       e.clientX,
       e.clientY,
     );
-    this.createTextInput(e.clientX, e.clientY, x, y);
+    this.worldPos = { x, y };
+    this.createTextInput(e.clientX, e.clientY);
   }
 
   onPointerMove(): void {}
@@ -32,16 +34,12 @@ export class TextTool extends BaseTool {
     if (e.key === "Escape" && this.isEditing) {
       this.cancelEditing();
     } else if (e.key === "Enter" && !e.shiftKey && this.isEditing) {
+      e.preventDefault();
       this.finishEditing();
     }
   }
 
-  private createTextInput(
-    clientX: number,
-    clientY: number,
-    worldX: number,
-    worldY: number,
-  ) {
+  private createTextInput(clientX: number, clientY: number) {
     this.isEditing = true;
     this.currentElementId = nanoid();
 
@@ -49,20 +47,26 @@ export class TextTool extends BaseTool {
     this.input.style.position = "absolute";
     this.input.style.top = `${clientY}px`;
     this.input.style.left = `${clientX}px`;
-    this.input.style.background = "transparent";
-    this.input.style.border = "1px dashed #6965db";
+    this.input.style.background = "var(--panel-bg)";
+    this.input.style.backdropFilter = "blur(10px)";
+    this.input.style.border = "1px solid var(--primary-color)";
     this.input.style.outline = "none";
     this.input.style.padding = "4px";
+    this.input.style.verticalAlign = "top";
     this.input.style.margin = "0";
     this.input.style.font = "20px 'Patrick Hand', cursive";
-    this.input.style.color = this.context.getCurrentStyle().strokeColor;
+    this.input.style.color = "var(--text-color)";
     this.input.style.resize = "none";
     this.input.style.zIndex = "1000";
     this.input.style.overflow = "hidden";
     this.input.style.minWidth = "100px";
+    this.input.style.boxShadow = "var(--shadow)";
+    this.input.style.borderRadius = "var(--radius-sm)";
 
     document.body.appendChild(this.input);
-    this.input.focus();
+
+    // Slight delay to ensure focus works
+    setTimeout(() => this.input?.focus(), 0);
 
     // Auto-resize textarea
     this.input.oninput = () => {
@@ -74,30 +78,37 @@ export class TextTool extends BaseTool {
       }
     };
 
-    // Save on blur
+    // Save on blur if not cancelled
     this.input.onblur = () => {
-      this.finishEditing(worldX, worldY);
+      // Small delay to allow potential Esc key to trigger cancelEditing first
+      setTimeout(() => {
+        if (this.isEditing) {
+          this.finishEditing();
+        }
+      }, 100);
     };
   }
 
-  private finishEditing(worldX?: number, worldY?: number) {
+  private finishEditing() {
     if (!this.input || !this.isEditing) return;
 
     const text = this.input.value.trim();
-    if (text && worldX !== undefined && worldY !== undefined) {
+    if (text) {
       const style = this.context.getCurrentStyle();
+      const zoom = this.context.cameraManager.get().zoom;
+
       const newElement: Element = {
         id: this.currentElementId!,
         type: "text",
-        x: worldX,
-        y: worldY,
-        width: this.input.offsetWidth / this.context.cameraManager.get().zoom,
-        height: this.input.offsetHeight / this.context.cameraManager.get().zoom,
+        x: this.worldPos.x,
+        y: this.worldPos.y,
+        width: this.input.offsetWidth / zoom,
+        height: this.input.offsetHeight / zoom,
         text: text,
         strokeColor: style.strokeColor,
         backgroundColor: "transparent",
         strokeWidth: style.strokeWidth,
-        roughness: 0, // Text usually looks better clean
+        roughness: 0,
         opacity: style.opacity,
         fontSize: 20,
         version: 1,
@@ -110,6 +121,7 @@ export class TextTool extends BaseTool {
   }
 
   private cancelEditing() {
+    this.isEditing = false; // Mark as not editing to prevent blur from saving
     this.cleanup();
   }
 
@@ -123,6 +135,8 @@ export class TextTool extends BaseTool {
   }
 
   onDeactivate(): void {
-    this.finishEditing();
+    if (this.isEditing) {
+      this.finishEditing();
+    }
   }
 }
