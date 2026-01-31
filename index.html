@@ -4,29 +4,28 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Antigravity Draw | Next-Gen Collaborative Canvas</title>
+    <title>Antigravity Draw | Infinity Canvas</title>
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Patrick+Hand&family=JetBrains+Mono:wght@700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Patrick+Hand&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
+    <!-- Main Canvas -->
     <canvas id="canvas"></canvas>
 
-    <!-- Side Actions (Top Left) -->
-    <div class="actions-panel">
-      <button id="export-btn" class="action-btn" title="Export to PNG">
+    <!-- Navigation Hub (Top Left) -->
+    <div class="nav-panel glass-panel">
+      <button id="export-btn" class="nav-btn" title="Export Canvas">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2.5"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
@@ -35,49 +34,50 @@
           <line x1="12" x2="12" y1="15" y2="3" />
         </svg>
       </button>
-      <button id="share-btn" class="action-btn" title="Share Room URL">
+      <button id="share-btn" class="nav-btn" title="Share URL">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2.5"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <circle cx="18" cy="5" r="3" />
-          <circle cx="6" cy="12" r="3" />
-          <circle cx="18" cy="19" r="3" />
-          <line x1="8.59" x2="15.42" y1="13.51" y2="17.49" />
-          <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" />
+          <path
+            d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+          />
+          <path
+            d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+          />
         </svg>
       </button>
-      <button id="theme-toggle" class="action-btn" title="Toggle Dark Mode">
+      <div
+        style="
+          width: 1px;
+          height: 24px;
+          background: var(--panel-border);
+          margin: auto 4px;
+        "
+      ></div>
+      <button id="theme-toggle" class="nav-btn" title="Toggle Theme">
         <svg
+          id="theme-icon"
           xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2.5"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
           <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
         </svg>
       </button>
-      <button id="grid-toggle" class="action-btn" title="Toggle Grid Style">
+      <button id="grid-toggle" class="nav-btn" title="Grid Style">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2.5"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
@@ -90,17 +90,100 @@
       </button>
     </div>
 
-    <!-- Main Toolbar (Top Center) -->
-    <nav class="toolbar">
-      <button class="tool-btn active" data-tool="select" title="Selection (V)">
+    <!-- Collaboration Badge (Top Right) -->
+    <div class="collab-badge glass-panel">
+      <div class="status-indicator"></div>
+      <span id="collab-text">Connecting...</span>
+    </div>
+
+    <!-- Properties Panel (Floating Right) -->
+    <aside class="properties-panel glass-panel" id="props-panel">
+      <div class="prop-group">
+        <span class="prop-title">Stroke</span>
+        <div class="color-grid" id="stroke-colors">
+          <div
+            class="color-dot active"
+            style="background: #1a1c1e"
+            data-color="#1a1c1e"
+          ></div>
+          <div
+            class="color-dot"
+            style="background: #ef4444"
+            data-color="#ef4444"
+          ></div>
+          <div
+            class="color-dot"
+            style="background: #10b981"
+            data-color="#10b981"
+          ></div>
+          <div
+            class="color-dot"
+            style="background: #3b82f6"
+            data-color="#3b82f6"
+          ></div>
+          <div
+            class="color-dot"
+            style="background: #f59e0b"
+            data-color="#f59e0b"
+          ></div>
+        </div>
+      </div>
+      <div class="prop-group">
+        <span class="prop-title">Fill</span>
+        <div class="color-grid" id="bg-colors">
+          <div
+            class="color-dot active"
+            style="background: transparent; border: 2px dashed #ccc"
+            data-color="transparent"
+          ></div>
+          <div
+            class="color-dot"
+            style="background: #fee2e2"
+            data-color="#fee2e2"
+          ></div>
+          <div
+            class="color-dot"
+            style="background: #dcfce7"
+            data-color="#dcfce7"
+          ></div>
+          <div
+            class="color-dot"
+            style="background: #dbeafe"
+            data-color="#dbeafe"
+          ></div>
+          <div
+            class="color-dot"
+            style="background: #fef3c7"
+            data-color="#fef3c7"
+          ></div>
+        </div>
+      </div>
+      <div class="prop-group">
+        <span class="prop-title">Roughness</span>
+        <div class="toggle-group" id="roughness-btns">
+          <button class="toggle-btn" data-value="0">Sharp</button>
+          <button class="toggle-btn active" data-value="1">Sketch</button>
+          <button class="toggle-btn" data-value="2">Raw</button>
+        </div>
+      </div>
+      <div class="prop-group">
+        <span class="prop-title">Weight</span>
+        <div class="toggle-group" id="stroke-width-btns">
+          <button class="toggle-btn" data-value="1">Thin</button>
+          <button class="toggle-btn active" data-value="2">Bold</button>
+          <button class="toggle-btn" data-value="4">Heavy</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Tool Dock (Bottom Center) -->
+    <div class="dock-container glass-panel">
+      <button class="dock-btn active" data-tool="select" title="Selection (V)">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
@@ -108,77 +191,62 @@
           <path d="m13 13 6 6" />
         </svg>
       </button>
-      <div class="tool-separator"></div>
-      <button class="tool-btn" data-tool="rectangle" title="Rectangle (R)">
+      <div class="dock-separator"></div>
+      <button class="dock-btn" data-tool="rectangle" title="Rectangle (R)">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
           <rect width="18" height="18" x="3" y="3" rx="2" />
         </svg>
       </button>
-      <button class="tool-btn" data-tool="ellipse" title="Ellipse (O)">
+      <button class="dock-btn" data-tool="ellipse" title="Ellipse (O)">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
           <circle cx="12" cy="12" r="10" />
         </svg>
       </button>
-      <button class="tool-btn" data-tool="diamond" title="Diamond (D)">
+      <button class="dock-btn" data-tool="diamond" title="Diamond (D)">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
           <path d="M12 3 20 12 12 21 4 12Z" />
         </svg>
       </button>
-      <div class="tool-separator"></div>
-      <button class="tool-btn" data-tool="line" title="Line (L)">
+      <div class="dock-separator"></div>
+      <button class="dock-btn" data-tool="line" title="Line (L)">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
           <path d="M5 19 19 5" />
         </svg>
       </button>
-      <button class="tool-btn" data-tool="arrow" title="Arrow (A)">
+      <button class="dock-btn" data-tool="arrow" title="Arrow (A)">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
@@ -186,15 +254,12 @@
           <path d="m12 5 7 7-7 7" />
         </svg>
       </button>
-      <button class="tool-btn" data-tool="pencil" title="Pencil (P)">
+      <button class="dock-btn" data-tool="pencil" title="Pencil (P)">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
@@ -202,15 +267,12 @@
           <path d="m15 5 4 4" />
         </svg>
       </button>
-      <button class="tool-btn" data-tool="text" title="Text (T)">
+      <button class="dock-btn" data-tool="text" title="Text (T)">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
@@ -219,16 +281,13 @@
           <line x1="12" x2="12" y1="4" y2="20" />
         </svg>
       </button>
-      <div class="tool-separator"></div>
-      <button class="tool-btn" data-tool="eraser" title="Eraser (E)">
+      <div class="dock-separator"></div>
+      <button class="dock-btn" data-tool="eraser" title="Eraser (E)">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
@@ -239,15 +298,12 @@
           <path d="m5 11 9 9" />
         </svg>
       </button>
-      <button class="tool-btn" data-tool="laser" title="Laser Pointer (K)">
+      <button class="dock-btn" data-tool="laser" title="Laser Pointer (K)">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
@@ -257,114 +313,26 @@
           <path d="m15 9 3 3" />
         </svg>
       </button>
-    </nav>
+    </div>
 
-    <!-- Properties Panel (Left) -->
-    <aside class="properties-panel" id="properties-panel">
-      <div class="prop-group">
-        <span class="prop-label">Stroke</span>
-        <div class="color-grid" id="stroke-colors">
-          <div
-            class="color-swatch active"
-            style="background: #1e293b"
-            data-color="#1e293b"
-          ></div>
-          <div
-            class="color-swatch"
-            style="background: #ef4444"
-            data-color="#ef4444"
-          ></div>
-          <div
-            class="color-swatch"
-            style="background: #10b981"
-            data-color="#10b981"
-          ></div>
-          <div
-            class="color-swatch"
-            style="background: #6366f1"
-            data-color="#6366f1"
-          ></div>
-          <div
-            class="color-swatch"
-            style="background: #f59e0b"
-            data-color="#f59e0b"
-          ></div>
-        </div>
-      </div>
-      <div class="prop-group">
-        <span class="prop-label">Background</span>
-        <div class="color-grid" id="bg-colors">
-          <div
-            class="color-swatch active"
-            style="
-              background: transparent;
-              border: 2px dashed var(--border-color);
-            "
-            data-color="transparent"
-          ></div>
-          <div
-            class="color-swatch"
-            style="background: #fee2e2"
-            data-color="#fee2e2"
-          ></div>
-          <div
-            class="color-swatch"
-            style="background: #dcfce7"
-            data-color="#dcfce7"
-          ></div>
-          <div
-            class="color-swatch"
-            style="background: #e0e7ff"
-            data-color="#e0e7ff"
-          ></div>
-          <div
-            class="color-swatch"
-            style="background: #fef3c7"
-            data-color="#fef3c7"
-          ></div>
-        </div>
-      </div>
-      <div class="prop-group">
-        <span class="prop-label">Roughness</span>
-        <div class="style-grid" id="roughness-btns">
-          <button class="style-btn" data-value="0">Sharp</button>
-          <button class="style-btn active" data-value="1">Sketch</button>
-          <button class="style-btn" data-value="2">Raw</button>
-        </div>
-      </div>
-      <div class="prop-group">
-        <span class="prop-label">Width</span>
-        <div class="style-grid" id="stroke-width-btns">
-          <button class="style-btn" data-value="1">Thin</button>
-          <button class="style-btn active" data-value="2">Bold</button>
-          <button class="style-btn" data-value="4">Extra</button>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Zoom Hub (Bottom Left) -->
-    <div class="zoom-controls">
-      <button id="zoom-out" class="zoom-btn" title="Zoom Out">−</button>
-      <span id="zoom-level">100%</span>
-      <button id="zoom-in" class="zoom-btn" title="Zoom In">+</button>
+    <!-- Zoom Control (Bottom Left) -->
+    <div class="zoom-hub glass-panel">
+      <button id="zoom-out" class="zoom-icon-btn">−</button>
+      <span id="zoom-val">100%</span>
+      <button id="zoom-in" class="zoom-icon-btn">+</button>
       <button
         id="zoom-reset"
-        class="zoom-btn"
-        style="padding:0 12px; font-size:10px; opacity:0.6 hover:opacity:1"
+        class="zoom-icon-btn"
+        style="font-size: 9px; font-weight: 800; opacity: 0.6"
       >
-        RESET
+        RST
       </button>
     </div>
 
-    <!-- Collab Status (Top Right) -->
-    <div class="collab-badge">
-      <div class="status-dot"></div>
-      1 user live
-    </div>
-
-    <!-- AI Suggestion Toast -->
-    <div id="suggestion-toast" class="suggestion-toast" style="display: none">
-      ✨ Looking for a perfect shape? [Cleanup]
+    <!-- AI Toast -->
+    <div id="ai-toast" class="ai-suggestion" style="display: none">
+      <span>✨ Clean up sketch?</span>
+      <button id="ai-cleanup-btn" class="ai-btn">Perfect</button>
     </div>
 
     <script type="module" src="/src/main.ts"></script>

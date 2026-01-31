@@ -60,27 +60,19 @@ export class SelectionTool extends BaseTool {
   private syncUI(el: any) {
     // Update stroke color
     document
-      .querySelectorAll("#stroke-colors .color-swatch")
-      .forEach((swatch: any) => {
-        swatch.classList.toggle(
-          "active",
-          swatch.dataset.color === el.strokeColor,
-        );
+      .querySelectorAll("#stroke-colors .color-dot")
+      .forEach((dot: any) => {
+        dot.classList.toggle("active", dot.dataset.color === el.strokeColor);
       });
 
     // Update background color
-    document
-      .querySelectorAll("#bg-colors .color-swatch")
-      .forEach((swatch: any) => {
-        swatch.classList.toggle(
-          "active",
-          swatch.dataset.color === el.backgroundColor,
-        );
-      });
+    document.querySelectorAll("#bg-colors .color-dot").forEach((dot: any) => {
+      dot.classList.toggle("active", dot.dataset.color === el.backgroundColor);
+    });
 
     // Update roughness
     document
-      .querySelectorAll("#roughness-btns .style-btn")
+      .querySelectorAll("#roughness-btns .toggle-btn")
       .forEach((btn: any) => {
         btn.classList.toggle(
           "active",
@@ -90,7 +82,7 @@ export class SelectionTool extends BaseTool {
 
     // Update stroke width
     document
-      .querySelectorAll("#stroke-width-btns .style-btn")
+      .querySelectorAll("#stroke-width-btns .toggle-btn")
       .forEach((btn: any) => {
         btn.classList.toggle(
           "active",

@@ -134,7 +134,10 @@ export class Renderer {
       for (let x = startX; x < endX; x += gridSize) {
         for (let y = startY; y < endY; y += gridSize) {
           ctx.beginPath();
-          ctx.arc(x, y, 0.7, 0, Math.PI * 2);
+          ctx.arc(x, y, 0.5, 0, Math.PI * 2);
+          ctx.fillStyle = isDark
+            ? "rgba(255,255,255,0.05)"
+            : "rgba(0,0,0,0.05)";
           ctx.fill();
         }
       }
