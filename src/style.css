@@ -1,30 +1,42 @@
 :root {
-  --primary: #6965db;
   --bg-color: #f8f9fa;
-  --panel-bg: rgba(255, 255, 255, 0.95);
-  --border-color: #e0e0e0;
-  --text-main: #1b1b1f;
-  --text-muted: #6b6b6b;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
-  --radius-lg: 12px;
+  --panel-bg: rgba(255, 255, 255, 0.9);
+  --text-color: #212529;
+  --border-color: #dee2e6;
+  --primary-color: #6965db;
+  --primary-hover: #5850c9;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --radius-sm: 4px;
   --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+body.dark-theme {
+  --bg-color: #121212;
+  --panel-bg: rgba(30, 30, 30, 0.95);
+  --text-color: #e0e0e0;
+  --border-color: #333333;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 * {
   box-sizing: border-box;
-}
-
-body,
-html {
   margin: 0;
   padding: 0;
-  overflow: hidden;
-  background-color: var(--bg-color);
+}
+
+body {
   font-family:
     "Inter",
     -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
     sans-serif;
-  color: var(--text-main);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  overflow: hidden;
+  transition: background-color 0.3s ease;
 }
 
 #app {
@@ -37,6 +49,10 @@ canvas {
   display: block;
   touch-action: none;
   cursor: crosshair;
+}
+
+body.dark-theme canvas {
+  background-color: #121212; /* Dark background for canvas in dark mode */
 }
 
 /* UI Overlay Container */
@@ -53,6 +69,32 @@ canvas {
   pointer-events: auto;
 }
 
+/* Actions Panel */
+.actions-panel {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  background: var(--panel-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  padding: 10px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--text-color);
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow);
+}
+
+.action-btn:hover {
+  background: var(--border-color);
+  transform: translateY(-1px);
+}
+
 /* Top Toolbar */
 .toolbar {
   position: absolute;
@@ -67,6 +109,7 @@ canvas {
   display: flex;
   gap: 4px;
   border: 1px solid var(--border-color);
+  z-index: 100;
 }
 
 .tool-btn {
@@ -80,7 +123,7 @@ canvas {
   align-items: center;
   justify-content: center;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  color: var(--text-main);
+  color: var(--text-color);
 }
 
 .tool-btn svg {
@@ -89,18 +132,23 @@ canvas {
 }
 
 .tool-btn:hover {
-  background: #f0f0f0;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+body.dark-theme .tool-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .tool-btn.active {
-  background: var(--primary);
-  color: white;
+  background: var(--primary-color) !important;
+  color: white !important;
 }
 
 .tool-separator {
   width: 1px;
+  height: 24px;
   background: var(--border-color);
-  margin: 8px 4px;
+  margin: auto 4px;
 }
 
 /* Sidebar / Properties Panel */
@@ -118,6 +166,7 @@ canvas {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  z-index: 90;
 }
 
 .prop-group {

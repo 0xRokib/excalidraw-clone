@@ -8,6 +8,7 @@ import { EraserTool } from "./tools/EraserTool.ts";
 import { PencilTool } from "./tools/PencilTool.ts";
 import { SelectionTool } from "./tools/SelectionTool.ts";
 import { ShapeTool } from "./tools/ShapeTool.ts";
+import { TextTool } from "./tools/TextTool.ts";
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 // Use a unique room name for local testing or from URL
@@ -17,6 +18,14 @@ const scene = new Scene(roomName);
 const cameraManager = new CameraManager();
 const renderer = new Renderer(canvas, scene, cameraManager);
 const history = new HistoryManager(scene.getCollab().elementsMap);
+
+// Export Functionality
+const exportToImage = () => {
+  const link = document.createElement("a");
+  link.download = `antigravity-draw-${Date.now()}.png`;
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+};
 
 // Style State
 let currentStyle = {
@@ -43,6 +52,7 @@ const tools: Record<string, BaseTool> = {
   arrow: new ShapeTool(context, "arrow"),
   pencil: new PencilTool(context),
   eraser: new EraserTool(context),
+  text: new TextTool(context),
 };
 
 let activeTool: BaseTool = tools.select;
@@ -214,6 +224,10 @@ window.addEventListener("keydown", (e) => {
     document
       .querySelector('[data-tool="diamond"]')
       ?.dispatchEvent(new Event("click"));
+  if (e.code === "KeyT")
+    document
+      .querySelector('[data-tool="text"]')
+      ?.dispatchEvent(new Event("click"));
   if (e.code === "KeyE")
     document
       .querySelector('[data-tool="eraser"]')
@@ -238,6 +252,20 @@ window.addEventListener("keydown", (e) => {
     document
       .querySelector('[data-tool="select"]')
       ?.dispatchEvent(new Event("click"));
+});
+
+// Action Panel Listeners
+document.getElementById("export-btn")?.addEventListener("click", exportToImage);
+document.getElementById("theme-toggle")?.addEventListener("click", () => {
+  document.body.classList.toggle("dark-theme");
+  const isDark = document.body.classList.contains("dark-theme");
+  const icon = document.querySelector("#theme-toggle svg") as HTMLElement;
+  if (isDark) {
+    icon.innerHTML =
+      '<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364-.707.707M6.343 17.657l-.707.707m12.728 0-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>';
+  } else {
+    icon.innerHTML = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />';
+  }
 });
 
 window.addEventListener("keyup", (e) => {

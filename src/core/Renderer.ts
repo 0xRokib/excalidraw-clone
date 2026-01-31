@@ -216,6 +216,23 @@ export class Renderer {
           drawables.push(this.generator.linearPath(element.points, options));
         }
         break;
+      case "text":
+        if (element.text) {
+          this.offscreenCtx.save();
+          this.offscreenCtx.fillStyle = element.strokeColor;
+          this.offscreenCtx.font = `${element.fontSize || 20}px 'Patrick Hand', cursive`;
+          this.offscreenCtx.textBaseline = "top";
+          const lines = element.text.split("\n");
+          lines.forEach((line, i) => {
+            this.offscreenCtx.fillText(
+              line,
+              element.x,
+              element.y + i * (element.fontSize || 20) * 1.2,
+            );
+          });
+          this.offscreenCtx.restore();
+        }
+        break;
     }
 
     if (drawables.length > 0) {
