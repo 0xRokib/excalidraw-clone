@@ -4,6 +4,7 @@ import { Scene } from "./core/Scene.ts";
 import { HistoryManager } from "./history/HistoryManager.ts";
 import type { ToolContext } from "./tools/BaseTool.ts";
 import { BaseTool } from "./tools/BaseTool.ts";
+import { EraserTool } from "./tools/EraserTool.ts";
 import { PencilTool } from "./tools/PencilTool.ts";
 import { SelectionTool } from "./tools/SelectionTool.ts";
 import { ShapeTool } from "./tools/ShapeTool.ts";
@@ -41,6 +42,7 @@ const tools: Record<string, BaseTool> = {
   line: new ShapeTool(context, "line"),
   arrow: new ShapeTool(context, "arrow"),
   pencil: new PencilTool(context),
+  eraser: new EraserTool(context),
 };
 
 let activeTool: BaseTool = tools.select;
@@ -57,7 +59,14 @@ document.querySelectorAll(".tool-btn").forEach((btn) => {
       activeTool.onDeactivate?.();
       activeTool = tools[toolId];
       (e.currentTarget as HTMLButtonElement).classList.add("active");
-      canvas.style.cursor = toolId === "select" ? "default" : "crosshair";
+
+      if (toolId === "select") {
+        canvas.style.cursor = "default";
+      } else if (toolId === "eraser") {
+        canvas.style.cursor = "cell";
+      } else {
+        canvas.style.cursor = "crosshair";
+      }
     }
   });
 });
@@ -204,6 +213,10 @@ window.addEventListener("keydown", (e) => {
   if (e.code === "KeyD")
     document
       .querySelector('[data-tool="diamond"]')
+      ?.dispatchEvent(new Event("click"));
+  if (e.code === "KeyE")
+    document
+      .querySelector('[data-tool="eraser"]')
       ?.dispatchEvent(new Event("click"));
   if (e.code === "KeyL")
     document
