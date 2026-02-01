@@ -1,4 +1,4 @@
-# Excalidraw Clone: Architectural Blueprint
+# NovaDraw: Architectural Blueprint
 
 This document outlines the technical decisions and architecture for the collaborative sketch-style drawing tool.
 

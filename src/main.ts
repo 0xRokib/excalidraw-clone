@@ -192,7 +192,7 @@ canvas.addEventListener(
 // Nav Buttons
 document.getElementById("export-btn")?.addEventListener("click", () => {
   const link = document.createElement("a");
-  link.download = `antigravity-draw-${Date.now()}.png`;
+  link.download = `novadraw-${Date.now()}.png`;
   link.href = canvas.toDataURL("image/png");
   link.click();
 });

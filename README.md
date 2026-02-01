@@ -1,6 +1,6 @@
-# 🎨 Antigravity Draw
+# 🎨 NovaDraw
 
-**Antigravity Draw** is a next-generation, local-first collaborative drawing tool built for speed, aesthetics, and seamless teamwork. Inspired by the "pencil-and-paper" feel, it combines a hand-drawn aesthetic with powerful professional features and AI-assisted workflows.
+**NovaDraw** is a next-generation, local-first collaborative drawing tool built for speed, aesthetics, and seamless teamwork. Inspired by the "pencil-and-paper" feel, it combines a hand-drawn aesthetic with powerful professional features and AI-assisted workflows.
 
 ![Banner](https://images.unsplash.com/photo-1512314889357-e157c22f938d?auto=format&fit=crop&q=80&w=2000)
 
@@ -31,13 +31,23 @@
 - **Styling**: Real-time control over stroke width, background fills, and "Roughness" levels.
 - **Export**: High-fidelity PNG export for sharing your masterpieces.
 
+## 🌌 The Nova Identity
+
+**NovaDraw** isn't just a rename; it's an evolution. We've shifted from a generic clone to a focused, high-performance canvas engine designed for the modern web.
+
+### 🎨 Design Philosophy
+
+- **Minimalism**: Focus on the content, not the controls.
+- **Glassmorphism**: Using real-time backdrop sub-sampling for a premium, integrated feel.
+- **Micro-Interactions**: Every click, tool switch, and zoom level change is accompanied by subtle, spring-based animations.
+
 ## 🛠️ Tech Stack
 
-- **Core**: TypeScript
-- **Rendering**: HTML5 Canvas + [Rough.js](https://roughjs.com/) (for the hand-drawn sketch look).
-- **Multiplayer**: [Yjs](https://yjs.dev/) (CRDT) + `y-webrtc`.
-- **Styling**: Vanilla CSS with modern CSS Variables and Glassmorphism techniques.
-- **Build Tool**: Vite.
+- **Core**: TypeScript with a custom reactive rendering loop.
+- **Rendering**: HTML5 Canvas + [Rough.js](https://roughjs.com/) for that signature hand-drawn aesthetic.
+- **Multiplayer**: [Yjs](https://yjs.dev/) (CRDT) + `y-webrtc` for real-time, conflict-free collaboration.
+- **Styling**: Modern CSS Variables, CSS Grid, and sophisticated Glassmorphism.
+- **Build Tool**: Powered by Vite for lightning-fast development.
 
 ## 🚀 Getting Started
 
@@ -51,8 +61,8 @@
 1.  **Clone the repository**:
 
     ```bash
-    git clone https://github.com/your-username/antigravity-draw.git
-    cd antigravity-draw
+    git clone https://github.com/your-username/novadraw.git
+    cd novadraw
     ```
 
 2.  **Install dependencies**:
@@ -102,4 +112,4 @@ src/
 
 ---
 
-Developed with ❤️ by the **Antigravity Team**. Perfect for brainstorming, wireframing, and remote collaboration.
+Developed with ❤️ by the **NovaDraw Team**. Perfect for brainstorming, wireframing, and remote collaboration.
